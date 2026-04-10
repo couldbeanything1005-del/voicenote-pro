@@ -42,19 +42,37 @@ const VNImporter = (() => {
         const fileInput = document.getElementById('fileInput');
         if (!fileInput) return;
         fileInput.addEventListener('change', e => {
-            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+                // iOSで同じファイルを再選択できるようにリセット
+                fileInput.value = '';
+            }
         });
     }
 
     function handleFile(file) {
-        if (!file.type.startsWith('audio/') && !file.name.match(/\.(m4a|mp3|wav|webm|ogg)$/i)) {
-            VNUI.showToast('対応していないファイル形式です');
+        // ファイルタイプチェック（iOS Safari対応で緩めに）
+        const isAudio = file.type.startsWith('audio/') ||
+                        file.name.match(/\.(m4a|mp3|wav|webm|ogg|caf|aac|mp4)$/i) ||
+                        file.type === '' || // iOSでtype空の場合がある
+                        file.type === 'application/octet-stream';
+
+        if (!isAudio) {
+            VNUI.showToast('音声ファイルを選択してください');
             return;
         }
 
         currentFile = file;
+
+        // ObjectURLでプレーヤーに設定
+        if (audioElement.src) {
+            URL.revokeObjectURL(audioElement.src);
+        }
         const url = URL.createObjectURL(file);
         audioElement.src = url;
+
+        // iOS Safariではloadが必要
+        audioElement.load();
 
         // ファイル情報表示
         const info = document.getElementById('fileInfo');
@@ -68,6 +86,16 @@ const VNImporter = (() => {
 
         // 電話モードをデフォルトに
         document.getElementById('importMode').value = 'phone';
+
+        // 文字起こしボタンの状態更新
+        const btn = document.getElementById('transcribeBtn');
+        if (VNTranscriber.isSupported) {
+            btn.textContent = '文字起こし開始';
+        } else {
+            btn.textContent = '保存（手動で文字を入力可）';
+        }
+
+        VNUI.showToast('ファイルを読み込みました');
     }
 
     async function transcribe() {
@@ -78,13 +106,32 @@ const VNImporter = (() => {
 
         const btn = document.getElementById('transcribeBtn');
         btn.disabled = true;
-        btn.textContent = '文字起こし中...';
 
         document.getElementById('importTranscript').style.display = 'block';
         const textEl = document.getElementById('importTranscriptText');
+
+        if (!VNTranscriber.isSupported) {
+            // iOS Safari等: 文字起こし非対応 → 手動入力モード
+            btn.textContent = '保存';
+            btn.disabled = false;
+            textEl.contentEditable = 'true';
+            textEl.innerHTML = '';
+            textEl.setAttribute('placeholder', 'ここに文字起こし内容を入力してください...');
+            textEl.focus();
+
+            VNUI.showToast('この端末では自動文字起こし非対応です。手動で入力できます。');
+
+            return {
+                segments: [],
+                fullText: '',
+                manualRequired: true
+            };
+        }
+
+        // 自動文字起こし（Chrome等）
+        btn.textContent = '文字起こし中...';
         textEl.innerHTML = '<span style="color:var(--text-secondary)">音声を再生して文字起こしています...</span>';
 
-        // 音声を先頭に戻す
         audioElement.currentTime = 0;
 
         try {
@@ -102,6 +149,7 @@ const VNImporter = (() => {
 
             btn.disabled = false;
             btn.textContent = '文字起こし開始';
+            textEl.contentEditable = 'true';
 
             return result;
         } catch (err) {
@@ -114,10 +162,21 @@ const VNImporter = (() => {
     }
 
     async function saveImport(transcriptResult) {
-        if (!transcriptResult || !currentFile) return null;
+        if (!currentFile) return null;
 
         const mode = document.getElementById('importMode').value;
-        const summary = VNSummarizer.summarize(transcriptResult.fullText || '', mode);
+
+        // 手動入力の場合、テキストエリアからテキスト取得
+        let fullText = '';
+        if (transcriptResult && transcriptResult.fullText) {
+            fullText = transcriptResult.fullText;
+        }
+        if (!fullText || transcriptResult?.manualRequired) {
+            const textEl = document.getElementById('importTranscriptText');
+            fullText = textEl.innerText || textEl.textContent || '';
+        }
+
+        const summary = VNSummarizer.summarize(fullText, mode);
 
         const record = {
             id: 'rec_' + Date.now(),
@@ -125,8 +184,8 @@ const VNImporter = (() => {
             mode: mode,
             date: new Date().toISOString(),
             duration: Math.floor(audioElement.duration || 0),
-            transcript: transcriptResult.fullText || '',
-            segments: transcriptResult.segments || [],
+            transcript: fullText,
+            segments: transcriptResult?.segments || [],
             summary: VNSummarizer.toText(summary),
             summaryHTML: VNSummarizer.toHTML(summary),
             bookmarks: [],

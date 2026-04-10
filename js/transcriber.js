@@ -12,28 +12,40 @@ const VNTranscriber = (() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const isSupported = !!SpeechRecognition;
 
+    // iOS Safari判定
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
     function init(callbacks = {}) {
         onUpdate = callbacks.onUpdate || null;
         onFinal = callbacks.onFinal || null;
     }
 
     function start(refTime) {
-        if (!isSupported) {
-            console.warn('Web Speech API非対応ブラウザ');
-            return false;
-        }
-
         segments = [];
         currentText = '';
         startTimestamp = refTime || Date.now();
 
+        if (!isSupported) {
+            // 非対応端末: 手動入力モード表示
+            isActive = true;
+            if (onUpdate) onUpdate('', []);
+            return true;
+        }
+
         createRecognition();
-        recognition.start();
-        isActive = true;
+        try {
+            recognition.start();
+            isActive = true;
+        } catch(e) {
+            console.warn('音声認識開始エラー:', e);
+            isActive = true; // 録音は続行
+        }
         return true;
     }
 
     function createRecognition() {
+        if (!isSupported) return;
         if (recognition) {
             try { recognition.abort(); } catch(e) {}
         }
@@ -76,7 +88,7 @@ const VNTranscriber = (() => {
             if (isActive) {
                 clearTimeout(restartTimeout);
                 restartTimeout = setTimeout(() => {
-                    if (isActive) {
+                    if (isActive && isSupported) {
                         try {
                             createRecognition();
                             recognition.start();
@@ -137,20 +149,22 @@ const VNTranscriber = (() => {
     function transcribeFromAudio(audioElement, callbacks = {}) {
         return new Promise((resolve) => {
             if (!isSupported) {
-                resolve({ segments: [], fullText: '' });
+                // 非対応端末: 音声だけ再生して手動入力を促す
+                resolve({
+                    segments: [],
+                    fullText: '',
+                    manualRequired: true
+                });
                 return;
             }
 
             const segs = [];
-            const playStartTime = Date.now();
 
             const rec = new SpeechRecognition();
             rec.lang = 'ja-JP';
             rec.continuous = true;
             rec.interimResults = true;
             rec.maxAlternatives = 1;
-
-            let interim = '';
 
             rec.onresult = e => {
                 for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -167,8 +181,7 @@ const VNTranscriber = (() => {
                         segs.push(seg);
                         if (callbacks.onFinal) callbacks.onFinal(seg, segs);
                     } else {
-                        interim = text;
-                        if (callbacks.onUpdate) callbacks.onUpdate(interim, segs);
+                        if (callbacks.onUpdate) callbacks.onUpdate(text, segs);
                     }
                 }
             };
@@ -189,7 +202,8 @@ const VNTranscriber = (() => {
                 try { rec.stop(); } catch(e) {}
                 resolve({
                     segments: segs,
-                    fullText: segs.map(s => `[${s.timestamp}] ${s.text}`).join('\n')
+                    fullText: segs.map(s => `[${s.timestamp}] ${s.text}`).join('\n'),
+                    manualRequired: false
                 });
             };
 
@@ -202,6 +216,7 @@ const VNTranscriber = (() => {
         init, start, stop, getFullText, getPlainText, buildTranscriptHTML,
         transcribeFromAudio, formatTimestamp,
         get isSupported() { return isSupported; },
+        get isIOS() { return isIOS; },
         get isActive() { return isActive; },
         get segments() { return [...segments]; }
     };

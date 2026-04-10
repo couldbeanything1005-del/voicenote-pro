@@ -63,8 +63,13 @@
             recordBtn.classList.add('recording');
             pauseBtn.disabled = false;
             bookmarkBtn.disabled = false;
-            transcriptText.innerHTML = '';
             transcriptText.contentEditable = 'false';
+
+            if (!VNTranscriber.isSupported) {
+                transcriptText.innerHTML = '<span style="color:var(--text-secondary)">録音中... (この端末では自動文字起こし非対応。停止後に手動入力できます)</span>';
+            } else {
+                transcriptText.innerHTML = '';
+            }
 
             // 文字起こし開始
             VNTranscriber.init({

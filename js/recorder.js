@@ -16,38 +16,71 @@ const VNRecorder = (() => {
     let waveformCtx = null;
     let animationId = null;
 
+    // Safari/iOS判定
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ||
+                     /iPad|iPhone|iPod/.test(navigator.userAgent);
+
     function init(canvas) {
         waveformCanvas = canvas;
         waveformCtx = canvas.getContext('2d');
         drawIdleWaveform();
     }
 
+    // Safari/iOS対応のMIMEタイプ選択
+    function getSupportedMimeType() {
+        const types = [
+            'audio/webm;codecs=opus',
+            'audio/webm',
+            'audio/mp4',
+            'audio/aac',
+            'audio/ogg;codecs=opus',
+            ''  // デフォルト（ブラウザ任せ）
+        ];
+        for (const type of types) {
+            if (!type) return undefined; // オプションなしで作成
+            try {
+                if (MediaRecorder.isTypeSupported(type)) return type;
+            } catch(e) {}
+        }
+        return undefined;
+    }
+
     async function start() {
         try {
+            // マイク許可を要求
             audioStream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
-                    noiseSuppression: true,
-                    sampleRate: 44100
+                    noiseSuppression: true
                 }
             });
 
+            // AudioContext（Safari対応）
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            // iOS Safariではユーザー操作後にresumeが必要
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+
             const source = audioContext.createMediaStreamSource(audioStream);
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 256;
             source.connect(analyser);
 
-            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-                ? 'audio/webm;codecs=opus'
-                : 'audio/webm';
+            // Safari/iOS対応のMIMEタイプ
+            const mimeType = getSupportedMimeType();
+            const options = mimeType ? { mimeType } : {};
 
-            mediaRecorder = new MediaRecorder(audioStream, { mimeType });
+            mediaRecorder = new MediaRecorder(audioStream, options);
             audioChunks = [];
             bookmarks = [];
 
             mediaRecorder.ondataavailable = e => {
                 if (e.data.size > 0) audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onerror = e => {
+                console.error('MediaRecorder エラー:', e.error);
             };
 
             mediaRecorder.start(1000);
@@ -61,25 +94,43 @@ const VNRecorder = (() => {
 
             return true;
         } catch (err) {
-            console.error('録音開始エラー:', err);
+            console.error('録音開始エラー:', err.name, err.message);
+            // エラーの種類に応じたメッセージ
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                VNUI.showToast('マイクの使用を許可してください');
+            } else if (err.name === 'NotFoundError') {
+                VNUI.showToast('マイクが見つかりません');
+            } else if (err.name === 'NotSupportedError') {
+                VNUI.showToast('この端末では録音に対応していません');
+            } else {
+                VNUI.showToast('録音を開始できません: ' + err.message);
+            }
             return false;
         }
     }
 
     function pause() {
         if (!isRecording || isPaused) return;
-        mediaRecorder.pause();
-        isPaused = true;
-        pauseStart = Date.now();
-        cancelAnimationFrame(animationId);
+        try {
+            mediaRecorder.pause();
+            isPaused = true;
+            pauseStart = Date.now();
+            cancelAnimationFrame(animationId);
+        } catch(e) {
+            console.warn('一時停止エラー:', e);
+        }
     }
 
     function resume() {
         if (!isRecording || !isPaused) return;
-        mediaRecorder.resume();
-        isPaused = false;
-        pausedDuration += Date.now() - pauseStart;
-        drawWaveform();
+        try {
+            mediaRecorder.resume();
+            isPaused = false;
+            pausedDuration += Date.now() - pauseStart;
+            drawWaveform();
+        } catch(e) {
+            console.warn('再開エラー:', e);
+        }
     }
 
     function stop() {
@@ -90,7 +141,8 @@ const VNRecorder = (() => {
             }
 
             mediaRecorder.onstop = () => {
-                const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                const mimeType = mediaRecorder.mimeType || 'audio/mp4';
+                const blob = new Blob(audioChunks, { type: mimeType });
                 const duration = getElapsedSeconds();
 
                 cleanup();
@@ -98,7 +150,8 @@ const VNRecorder = (() => {
                 resolve({
                     blob,
                     duration,
-                    bookmarks: [...bookmarks]
+                    bookmarks: [...bookmarks],
+                    mimeType
                 });
             };
 
@@ -107,7 +160,12 @@ const VNRecorder = (() => {
                 isPaused = false;
             }
 
-            mediaRecorder.stop();
+            try {
+                mediaRecorder.stop();
+            } catch(e) {
+                cleanup();
+                resolve(null);
+            }
         });
     }
 
@@ -149,7 +207,7 @@ const VNRecorder = (() => {
             audioStream = null;
         }
         if (audioContext && audioContext.state !== 'closed') {
-            audioContext.close();
+            try { audioContext.close(); } catch(e) {}
             audioContext = null;
         }
         mediaRecorder = null;
