@@ -19,6 +19,15 @@
     VNUI.setupHistoryFilters();
     VNUI.setupMemoGuide();
 
+    // PWAインストールプロンプト
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installBtn = document.getElementById('installPWABtn');
+        if (installBtn) installBtn.style.display = 'block';
+    });
+
     // Google Drive同期初期化
     VNGDrive.init();
     setupSettings();
@@ -282,15 +291,6 @@
     function delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-
-    // PWAインストールプロンプト
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', e => {
-        e.preventDefault();
-        deferredPrompt = e;
-        const installBtn = document.getElementById('installPWABtn');
-        if (installBtn) installBtn.style.display = 'block';
-    });
 
     // Web Share Target: 共有されたファイルを受信
     if ('serviceWorker' in navigator) {
