@@ -123,6 +123,14 @@ const VNUI = (() => {
         if (el('thisMonth')) el('thisMonth').textContent = stats.thisMonth;
     }
 
+    function setupMemoGuide() {
+        const toggle = document.getElementById('memoGuideToggle');
+        const guide = toggle?.closest('.memo-guide');
+        if (toggle && guide) {
+            toggle.addEventListener('click', () => guide.classList.toggle('open'));
+        }
+    }
+
     function setupHistoryFilters() {
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -249,6 +257,6 @@ const VNUI = (() => {
     return {
         showToast, switchView, setupNavigation, setupDarkMode,
         setupModeSelector, getSelectedMode, refreshHistory,
-        setupHistoryFilters, openDetail, updateStats
+        setupHistoryFilters, setupMemoGuide, openDetail, updateStats
     };
 })();

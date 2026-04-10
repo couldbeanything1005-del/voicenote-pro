@@ -1,19 +1,32 @@
 /**
  * VoiceNote Pro - Google Drive同期バックエンド
+ * 保存先: マイドライブ > 事業用 > VoiceNote（自動作成）
  *
  * 【セットアップ手順】
  * 1. Google Apps Script (https://script.google.com) で新しいプロジェクトを作成
- * 2. このコードを貼り付け
- * 3. FOLDER_ID を保存先のGoogleドライブフォルダIDに変更
- *    （フォルダのURLの最後の部分: https://drive.google.com/drive/folders/XXXXX ← これ）
- * 4. 「デプロイ」→「新しいデプロイ」→ 種類:「ウェブアプリ」
+ * 2. このコードを全て貼り付け（FOLDER_IDは設定済み）
+ * 3. 「デプロイ」→「新しいデプロイ」→ 種類:「ウェブアプリ」
  *    - 実行するユーザー: 自分
  *    - アクセス: 全員
- * 5. デプロイURLをコピーしてアプリの設定画面に貼り付け
+ * 4. デプロイURLをコピーしてアプリの設定画面に貼り付け
  */
 
 // === 設定 ===
-const FOLDER_ID = 'ここにフォルダIDを貼り付け';
+// 事業用フォルダID（この中に「VoiceNote」フォルダを自動作成します）
+const PARENT_FOLDER_ID = '18iZHLTZxgBsrxAtSpMXQ9qBHrOW4uGRd';
+
+// VoiceNoteルートフォルダを取得 or 自動作成
+function getVoiceNoteFolder() {
+  const parent = DriveApp.getFolderById(PARENT_FOLDER_ID);
+  const folders = parent.getFoldersByName('VoiceNote');
+  if (folders.hasNext()) return folders.next();
+  return parent.createFolder('VoiceNote');
+}
+
+// 後方互換のためFOLDER_IDをgetter化
+function getFolderId() {
+  return getVoiceNoteFolder().getId();
+}
 
 // === メイン処理 ===
 
@@ -101,7 +114,7 @@ function saveOrUpdateFile(folder, fileName, content, recordId, type) {
 
 // === サブフォルダ管理 ===
 function getOrCreateSubfolder(mode) {
-  const parentFolder = DriveApp.getFolderById(FOLDER_ID);
+  const parentFolder = getVoiceNoteFolder();
   const modeLabels = {
     phone: '📞 電話録音',
     meeting: '🏢 会議録音',
@@ -118,7 +131,7 @@ function getOrCreateSubfolder(mode) {
 
 // === ファイル一覧 ===
 function handleList(data) {
-  const parentFolder = DriveApp.getFolderById(FOLDER_ID);
+  const parentFolder = getVoiceNoteFolder();
   const files = [];
 
   // サブフォルダ内のメタファイルを検索
@@ -146,7 +159,7 @@ function handleList(data) {
 function handleDelete(data) {
   if (!data.title) return jsonResponse({ success: false, error: 'タイトルが必要です' });
 
-  const parentFolder = DriveApp.getFolderById(FOLDER_ID);
+  const parentFolder = getVoiceNoteFolder();
   let deleted = 0;
 
   const subFolders = parentFolder.getFolders();

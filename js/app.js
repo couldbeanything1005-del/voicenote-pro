@@ -17,6 +17,7 @@
     VNUI.setupDarkMode();
     VNUI.setupModeSelector();
     VNUI.setupHistoryFilters();
+    VNUI.setupMemoGuide();
 
     // Google Drive同期初期化
     VNGDrive.init();
@@ -290,6 +291,24 @@
         const installBtn = document.getElementById('installPWABtn');
         if (installBtn) installBtn.style.display = 'block';
     });
+
+    // Web Share Target: 共有されたファイルを受信
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', e => {
+            if (e.data && e.data.type === 'shared-audio' && e.data.file) {
+                VNUI.switchView('importView');
+                VNImporter.handleFile(e.data.file);
+                VNUI.showToast('共有ファイルを読み込みました');
+            }
+        });
+    }
+
+    // URLパラメータでインポート画面を開く
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('view') === 'import') {
+        VNUI.switchView('importView');
+        history.replaceState(null, '', './index.html');
+    }
 
     // Web Speech API非対応警告
     if (!VNTranscriber.isSupported) {

@@ -50,15 +50,47 @@
             <!-- インポート画面 -->
             <section id="importView" class="view">
                 <div class="import-area">
+                    <!-- メモからインポートガイド -->
+                    <div class="memo-guide">
+                        <div class="memo-guide-header" id="memoGuideToggle">
+                            <span>📱 iPhoneのメモから通話録音を取り込む</span>
+                            <span class="memo-guide-arrow">▼</span>
+                        </div>
+                        <div class="memo-guide-body" id="memoGuideBody">
+                            <div class="memo-steps">
+                                <div class="memo-step">
+                                    <div class="step-num">1</div>
+                                    <div class="step-text"><strong>メモアプリ</strong>を開き、通話録音があるメモを開く</div>
+                                </div>
+                                <div class="memo-step">
+                                    <div class="step-num">2</div>
+                                    <div class="step-text">録音ファイルを<strong>長押し</strong>する</div>
+                                </div>
+                                <div class="memo-step">
+                                    <div class="step-num">3</div>
+                                    <div class="step-text"><strong>「共有」</strong>をタップ</div>
+                                </div>
+                                <div class="memo-step">
+                                    <div class="step-num">4</div>
+                                    <div class="step-text"><strong>「"ファイル"に保存」</strong>をタップして保存</div>
+                                </div>
+                                <div class="memo-step">
+                                    <div class="step-num">5</div>
+                                    <div class="step-text">下の<strong>「ファイルを選択」</strong>から保存したファイルを選ぶ</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="dropZone" class="drop-zone">
                         <div class="drop-icon">📁</div>
                         <p>音声ファイルをドラッグ&ドロップ</p>
                         <p class="sub-text">または</p>
                         <label class="file-select-btn">
                             ファイルを選択
-                            <input type="file" id="fileInput" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg" hidden>
+                            <input type="file" id="fileInput" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.caf" hidden>
                         </label>
-                        <p class="supported-formats">対応形式: m4a, mp3, wav, webm, ogg</p>
+                        <p class="supported-formats">対応形式: m4a, mp3, wav, webm, ogg, caf</p>
                     </div>
 
                     <div id="importPlayer" class="player-area" style="display:none;">

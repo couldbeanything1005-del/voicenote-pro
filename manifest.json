@@ -15,5 +15,18 @@
             "type": "image/svg+xml",
             "purpose": "any maskable"
         }
-    ]
+    ],
+    "share_target": {
+        "action": "./index.html?share=true",
+        "method": "POST",
+        "enctype": "multipart/form-data",
+        "params": {
+            "files": [
+                {
+                    "name": "audio",
+                    "accept": ["audio/*", ".m4a", ".mp3", ".wav", ".caf"]
+                }
+            ]
+        }
+    }
 }

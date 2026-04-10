@@ -255,6 +255,76 @@ body {
     margin: 0 4px;
 }
 
+/* === メモからインポートガイド === */
+.memo-guide {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.memo-guide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    transition: background 0.2s;
+}
+.memo-guide-header:active { background: var(--accent-light); }
+
+.memo-guide-arrow {
+    font-size: 12px;
+    transition: transform 0.3s;
+    color: var(--text-secondary);
+}
+.memo-guide.open .memo-guide-arrow { transform: rotate(180deg); }
+
+.memo-guide-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+.memo-guide.open .memo-guide-body {
+    max-height: 400px;
+}
+
+.memo-steps {
+    padding: 0 16px 16px;
+}
+
+.memo-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.step-num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.step-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    padding-top: 2px;
+}
+
 /* === インポートエリア === */
 .import-area { padding: 8px 0; }
 
