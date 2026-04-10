@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>VoiceNote Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231a1a2e' width='100' height='100' rx='20'/><text x='50' y='65' text-anchor='middle' font-size='50'>🎙</text></svg>">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- ヘッダー -->
+        <header id="header">
+            <h1>VoiceNote Pro</h1>
+            <button id="darkModeToggle" class="icon-btn" aria-label="ダークモード切替">🌙</button>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main id="main">
+            <!-- 録音画面 -->
+            <section id="recordView" class="view active">
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="meeting">🏢 会議</button>
+                    <button class="mode-btn" data-mode="medical">🏥 診察</button>
+                    <button class="mode-btn" data-mode="memo">📝 メモ</button>
+                </div>
+
+                <div class="recorder-area">
+                    <canvas id="waveform" width="350" height="100"></canvas>
+                    <div id="recordTimer" class="timer">00:00:00</div>
+                    <div class="recorder-controls">
+                        <button id="bookmarkBtn" class="control-btn" disabled>🔖 マーク</button>
+                        <button id="recordBtn" class="record-btn">
+                            <span class="record-icon"></span>
+                        </button>
+                        <button id="pauseBtn" class="control-btn" disabled>⏸ 一時停止</button>
+                    </div>
+                </div>
+
+                <div id="liveTranscript" class="transcript-area">
+                    <h3>リアルタイム文字起こし</h3>
+                    <div id="transcriptText" class="transcript-text" contenteditable="false"></div>
+                </div>
+            </section>
+
+            <!-- インポート画面 -->
+            <section id="importView" class="view">
+                <div class="import-area">
+                    <div id="dropZone" class="drop-zone">
+                        <div class="drop-icon">📁</div>
+                        <p>音声ファイルをドラッグ&ドロップ</p>
+                        <p class="sub-text">または</p>
+                        <label class="file-select-btn">
+                            ファイルを選択
+                            <input type="file" id="fileInput" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg" hidden>
+                        </label>
+                        <p class="supported-formats">対応形式: m4a, mp3, wav, webm, ogg</p>
+                    </div>
+
+                    <div id="importPlayer" class="player-area" style="display:none;">
+                        <div class="import-mode-selector">
+                            <label>録音タイプ:</label>
+                            <select id="importMode">
+                                <option value="phone">📞 電話</option>
+                                <option value="meeting">🏢 会議</option>
+                                <option value="medical">🏥 診察</option>
+                                <option value="memo">📝 メモ</option>
+                            </select>
+                        </div>
+                        <div class="file-info" id="fileInfo"></div>
+                        <audio id="audioPlayer" controls></audio>
+                        <div class="import-actions">
+                            <button id="transcribeBtn" class="primary-btn">文字起こし開始</button>
+                        </div>
+                        <div id="importTranscript" class="transcript-area" style="display:none;">
+                            <h3>文字起こし結果</h3>
+                            <div id="importTranscriptText" class="transcript-text" contenteditable="true"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 履歴画面 -->
+            <section id="historyView" class="view">
+                <div class="history-header">
+                    <div class="search-bar">
+                        <input type="search" id="searchInput" placeholder="録音を検索...">
+                    </div>
+                    <div class="filter-bar">
+                        <button class="filter-btn active" data-filter="all">全て</button>
+                        <button class="filter-btn" data-filter="phone">📞 電話</button>
+                        <button class="filter-btn" data-filter="meeting">🏢 会議</button>
+                        <button class="filter-btn" data-filter="medical">🏥 診察</button>
+                        <button class="filter-btn" data-filter="memo">📝 メモ</button>
+                    </div>
+                </div>
+                <div id="historyList" class="history-list">
+                    <p class="empty-state">まだ録音がありません</p>
+                </div>
+
+                <!-- 統計 -->
+                <div id="statsPanel" class="stats-panel">
+                    <h3>統計</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalRecordings">0</div>
+                            <div class="stat-label">総録音数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalDuration">0分</div>
+                            <div class="stat-label">総録音時間</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="thisMonth">0</div>
+                            <div class="stat-label">今月の録音</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 設定画面 -->
+            <section id="settingsView" class="view">
+                <div class="settings-section">
+                    <h2 class="settings-title">Google Drive 同期</h2>
+                    <p class="settings-desc">録音の文字起こし・要約をGoogleドライブに自動保存します。</p>
+
+                    <div class="settings-card">
+                        <div class="settings-status" id="gdriveStatus">
+                            <span class="status-dot disconnected"></span>
+                            <span>未接続</span>
+                        </div>
+
+                        <label class="settings-label">GAS ウェブアプリURL</label>
+                        <input type="url" id="gdriveUrl" class="settings-input"
+                            placeholder="https://script.google.com/macros/s/xxxxx/exec">
+                        <div class="settings-actions">
+                            <button id="gdriveTestBtn" class="action-btn">接続テスト</button>
+                            <button id="gdriveSaveBtn" class="primary-btn">保存</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>セットアップ手順</h3>
+                        <ol class="setup-steps">
+                            <li>Googleドライブに保存先フォルダを作成</li>
+                            <li>フォルダを開き、URLの末尾のID部分をコピー<br>
+                                <code>drive.google.com/drive/folders/<strong>ここのID</strong></code></li>
+                            <li><a href="https://script.google.com" target="_blank" rel="noopener">Google Apps Script</a> で新しいプロジェクトを作成</li>
+                            <li><code>gdrive_sync.gs</code> のコードを貼り付け、FOLDER_IDを変更</li>
+                            <li>「デプロイ」→「新しいデプロイ」→ ウェブアプリとして公開</li>
+                            <li>デプロイURLを上の入力欄に貼り付けて「保存」</li>
+                        </ol>
+                    </div>
+
+                    <div class="settings-card">
+                        <label class="settings-label">自動同期</label>
+                        <div class="toggle-row">
+                            <span>録音完了時に自動でGoogleドライブに保存</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="autoSyncToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2 class="settings-title">アプリ情報</h2>
+                    <div class="settings-card">
+                        <p>VoiceNote Pro v1.0</p>
+                        <p class="settings-desc">音声録音・文字起こし・要約アプリ</p>
+                        <button id="installPWABtn" class="action-btn" style="display:none; margin-top:12px;">
+                            📲 ホーム画面に追加
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 詳細モーダル -->
+        <div id="detailModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle"></h2>
+                    <button class="close-btn" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-meta" id="modalMeta"></div>
+                    <div class="modal-tabs">
+                        <button class="modal-tab active" data-tab="transcript">文字起こし</button>
+                        <button class="modal-tab" data-tab="summary">要約</button>
+                    </div>
+                    <div id="modalTranscript" class="modal-tab-content active">
+                        <div id="modalTranscriptText" class="transcript-text" contenteditable="true"></div>
+                    </div>
+                    <div id="modalSummary" class="modal-tab-content">
+                        <div id="modalSummaryText" class="summary-text"></div>
+                    </div>
+                    <div class="modal-actions">
+                        <button id="exportTextBtn" class="action-btn">📄 テキスト出力</button>
+                        <button id="exportAudioBtn" class="action-btn">🔊 音声出力</button>
+                        <button id="deleteRecordBtn" class="action-btn danger">🗑 削除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 要約生成中モーダル -->
+        <div id="summaryModal" class="modal" style="display:none;">
+            <div class="modal-content small">
+                <div class="summary-generating">
+                    <div class="spinner"></div>
+                    <p>要約を生成中...</p>
+                </div>
+                <div id="summaryResult" style="display:none;">
+                    <h3>要点まとめ</h3>
+                    <div id="summaryContent" class="summary-text"></div>
+                    <div class="modal-actions">
+                        <button id="saveSummaryBtn" class="primary-btn">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- トースト通知 -->
+        <div id="toast" class="toast"></div>
+
+        <!-- ナビゲーション -->
+        <nav id="nav">
+            <button class="nav-btn active" data-view="recordView">
+                <span class="nav-icon">🎙</span>
+                <span class="nav-label">録音</span>
+            </button>
+            <button class="nav-btn" data-view="importView">
+                <span class="nav-icon">📥</span>
+                <span class="nav-label">インポート</span>
+            </button>
+            <button class="nav-btn" data-view="historyView">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">履歴</span>
+            </button>
+            <button class="nav-btn" data-view="settingsView">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">設定</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/recorder.js"></script>
+    <script src="js/transcriber.js"></script>
+    <script src="js/summarizer.js"></script>
+    <script src="js/importer.js"></script>
+    <script src="js/gdrive.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

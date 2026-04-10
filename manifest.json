@@ -1,0 +1,19 @@
+{
+    "name": "VoiceNote Pro",
+    "short_name": "VoiceNote",
+    "description": "音声録音・文字起こし・要約アプリ",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
+    "lang": "ja",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%231a1a2e' width='512' height='512' rx='100'/><text x='256' y='330' text-anchor='middle' font-size='260'>🎙</text></svg>",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}
