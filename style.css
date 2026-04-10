@@ -1,0 +1,139 @@
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+    --bg:#f8fafc;--bg2:#fff;--text:#0f172a;--text2:#64748b;
+    --accent:#2563eb;--accent-l:#dbeafe;--border:#e2e8f0;
+    --danger:#ef4444;--success:#22c55e;--radius:14px;--shadow:0 1px 6px rgba(0,0,0,.06);
+    --nav-h:66px;--hdr-h:52px
+}
+[data-theme=dark]{
+    --bg:#0f172a;--bg2:#1e293b;--text:#e2e8f0;--text2:#94a3b8;
+    --accent:#3b82f6;--accent-l:#1e3a5f;--border:#334155;
+    --shadow:0 1px 6px rgba(0,0,0,.3)
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;
+    background:var(--bg);color:var(--text);min-height:100dvh;-webkit-user-select:none;user-select:none}
+
+header{position:fixed;top:0;left:0;right:0;height:var(--hdr-h);background:var(--bg2);
+    display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+    border-bottom:1px solid var(--border);z-index:100}
+header h1{font-size:17px;font-weight:700;background:linear-gradient(135deg,var(--accent),#a855f7);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.icon-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:6px;border-radius:50%}
+
+.view{display:none;padding:calc(var(--hdr-h)+12px) 16px calc(var(--nav-h)+16px);max-width:500px;margin:0 auto}
+.view.active{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* カード */
+.card{background:var(--bg2);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h3{font-size:15px;margin-bottom:8px}
+.desc{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+
+/* 使い方 */
+.how-to{margin-bottom:14px}
+.how-to summary{font-size:14px;font-weight:600;color:var(--accent);cursor:pointer;padding:10px 0}
+.how-to ol{padding-left:22px;font-size:13px;line-height:2;color:var(--text)}
+
+/* カテゴリ選択 */
+.category-select{display:flex;gap:8px;margin-bottom:14px}
+.cat-btn{flex:1;padding:10px 6px;border:2px solid var(--border);border-radius:10px;
+    background:var(--bg);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;transition:.2s}
+.cat-btn.active{border-color:var(--accent);background:var(--accent-l);color:var(--accent)}
+
+/* 入力 */
+.input{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:10px;
+    background:var(--bg);color:var(--text);font-size:15px;outline:none;margin-bottom:10px;transition:.2s}
+.input:focus{border-color:var(--accent)}
+.textarea-wrap{position:relative;margin-bottom:4px}
+.textarea{width:100%;padding:14px;border:1px solid var(--border);border-radius:10px;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;resize:vertical;
+    outline:none;min-height:180px;-webkit-user-select:text;user-select:text;transition:.2s}
+.textarea:focus{border-color:var(--accent)}
+.paste-btn{position:absolute;bottom:10px;right:10px;padding:8px 14px;background:var(--accent);
+    color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.paste-btn:active{opacity:.8}
+.char-count{text-align:right;font-size:12px;color:var(--text2);margin-bottom:12px}
+
+/* ボタン */
+.primary-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;
+    border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:.2s}
+.primary-btn:disabled{opacity:.4;cursor:not-allowed}
+.primary-btn:not(:disabled):active{opacity:.85}
+.action-btn{padding:10px 16px;border:1px solid var(--border);border-radius:10px;
+    background:var(--bg);color:var(--text);font-size:13px;cursor:pointer;transition:.2s}
+.action-btn:active{background:var(--accent-l)}
+.action-btn.danger{color:var(--danger);border-color:var(--danger)}
+.row-btns{display:flex;gap:8px}
+.row-btns .action-btn,.row-btns .primary-btn{flex:1}
+
+/* 要約結果 */
+.result-card{border-left:4px solid var(--accent)}
+.result-card h3{color:var(--accent);font-size:16px;margin-bottom:10px}
+.summary-content{font-size:14px;line-height:1.9;white-space:pre-wrap}
+.summary-content .sec-title{font-weight:700;color:var(--accent);margin-top:10px;display:block}
+.summary-content .sec-item{display:block;padding-left:8px}
+.summary-content .sec-empty{color:var(--text2);font-style:italic}
+.result-actions{display:flex;gap:8px;margin-top:14px}
+.result-actions .primary-btn{flex:2}.result-actions .action-btn{flex:1}
+
+/* フィルタ */
+.filter-bar{display:flex;gap:6px;margin-bottom:10px}
+.filter-btn{padding:7px 14px;border:1px solid var(--border);border-radius:20px;
+    background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;transition:.2s}
+.filter-btn.active{border-color:var(--accent);background:var(--accent-l);color:var(--accent);font-weight:600}
+
+/* 履歴リスト */
+#historyList{min-height:100px}
+.h-item{background:var(--bg2);border-radius:var(--radius);padding:14px;margin-bottom:10px;
+    box-shadow:var(--shadow);cursor:pointer;transition:.15s}
+.h-item:active{transform:scale(.98)}
+.h-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.h-title{font-size:14px;font-weight:600}
+.h-badge{font-size:12px;padding:2px 8px;border-radius:10px;background:var(--accent-l);color:var(--accent)}
+.h-meta{font-size:12px;color:var(--text2)}
+.h-preview{font-size:13px;color:var(--text2);margin-top:4px;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.5}
+.empty{text-align:center;color:var(--text2);padding:40px 0;font-size:14px}
+
+/* 統計 */
+.stats{display:flex;gap:10px;margin-top:16px}
+.stats>div{flex:1;background:var(--bg2);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.stats .val{font-size:22px;font-weight:700;color:var(--accent)}
+.stats .lbl{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* GDrive */
+.status{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;margin-bottom:10px}
+.dot{width:9px;height:9px;border-radius:50%}.dot.on{background:var(--success)}.dot.off{background:var(--text2)}
+
+/* モーダル */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;
+    align-items:flex-end;justify-content:center}
+.modal-sheet{background:var(--bg2);width:100%;max-width:500px;max-height:85dvh;
+    border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:slideUp .3s}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)}
+.modal-header h2{font-size:16px}
+.modal-body{padding:14px 18px;overflow-y:auto;flex:1}
+.modal-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:12px}
+.mtab{flex:1;padding:9px;background:none;border:none;font-size:14px;font-weight:600;
+    color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.mtab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.mtab-content{display:none}.mtab-content.active{display:block}
+.full-text{font-size:14px;line-height:1.8;white-space:pre-wrap;-webkit-user-select:text;user-select:text}
+.modal-actions{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.modal-actions .action-btn{flex:1}
+
+/* トースト */
+.toast{position:fixed;bottom:calc(var(--nav-h)+14px);left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--text);color:var(--bg);padding:10px 22px;border-radius:25px;font-size:14px;
+    font-weight:600;z-index:300;transition:.3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ナビ */
+nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--bg2);
+    border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;
+    padding-bottom:env(safe-area-inset-bottom);z-index:100}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;
+    border:none;color:var(--text2);cursor:pointer;padding:6px 18px;font-size:11px;font-weight:600}
+.nav-btn.active{color:var(--accent)}
+.nav-btn span:first-child{font-size:20px}

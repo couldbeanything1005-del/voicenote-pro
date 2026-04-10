@@ -1,32 +1,17 @@
 {
     "name": "VoiceNote Pro",
     "short_name": "VoiceNote",
-    "description": "音声録音・文字起こし・要約アプリ",
+    "description": "通話録音の要約・管理アプリ",
     "start_url": "./index.html",
     "display": "standalone",
     "orientation": "portrait",
-    "background_color": "#1a1a2e",
-    "theme_color": "#1a1a2e",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
     "lang": "ja",
-    "icons": [
-        {
-            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%231a1a2e' width='512' height='512' rx='100'/><text x='256' y='330' text-anchor='middle' font-size='260'>🎙</text></svg>",
-            "sizes": "512x512",
-            "type": "image/svg+xml",
-            "purpose": "any maskable"
-        }
-    ],
-    "share_target": {
-        "action": "./index.html?share=true",
-        "method": "POST",
-        "enctype": "multipart/form-data",
-        "params": {
-            "files": [
-                {
-                    "name": "audio",
-                    "accept": ["audio/*", ".m4a", ".mp3", ".wav", ".caf"]
-                }
-            ]
-        }
-    }
+    "icons": [{
+        "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%230f172a' width='512' height='512' rx='100'/><text x='256' y='330' text-anchor='middle' font-size='260'>📝</text></svg>",
+        "sizes": "512x512",
+        "type": "image/svg+xml",
+        "purpose": "any maskable"
+    }]
 }
